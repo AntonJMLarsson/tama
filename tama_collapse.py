@@ -5096,7 +5096,7 @@ elif bam_flag == "SAM":
 
 if run_mode_flag == "original":
     for line in sam_file_contents:
-
+        line = line.decode()
         #if sam_count == 0:
         #    print(line)
 
