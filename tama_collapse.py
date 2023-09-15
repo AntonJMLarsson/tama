@@ -5912,7 +5912,7 @@ if run_mode_flag == "low_mem":
 
 
     for line in sam_file_contents:
-
+        line = line.decode()
         #if sam_count == 0:
         #    print(line)
 
