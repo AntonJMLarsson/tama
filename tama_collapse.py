@@ -5078,7 +5078,7 @@ if bam_flag == "BAM":
         raise OSError('Samtools not found!\n')
 
     sam_file_list = p.communicate()
-    sam_file_contents = sam_file_list[0].split("\n")
+    sam_file_contents = sam_file_list[0].split(b'\n')
     
     print(len(sam_file_contents))
 
