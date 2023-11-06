@@ -3,9 +3,7 @@
 import re
 import sys
 import time
-from Bio import SeqIO
-from io import StringIO
-from Bio import AlignIO
+from pyfaidx import Fasta
 import os
 import argparse
 
@@ -653,7 +651,7 @@ def calc_error_rate(start_pos,cigar,seq_list,scaffold,read_id):
             #genome_slice = fasta_dict[scaffold][genome_start:genome_end+1]
             
             seq_slice = seq_list[seq_start:seq_end]
-            genome_slice = fasta_dict[scaffold][genome_start:genome_end]
+            genome_slice = fasta_dict[scaffold][genome_start:genome_end].seq.upper()
             
             seq_diff = seq_end - seq_start
             gen_diff = genome_end - genome_start
@@ -862,7 +860,7 @@ def calc_error_rate(start_pos,cigar,seq_list,scaffold,read_id):
                     genome_end = this_genome_pos + match_length
 
                     seq_slice = seq_list[seq_start:seq_end]
-                    genome_slice = fasta_dict[scaffold][genome_start:genome_end]
+                    genome_slice = fasta_dict[scaffold][genome_start:genome_end].seq.upper()
 
                     #######################################################
                     #print(str(match_length)+next_cig_flag)
@@ -1059,7 +1057,7 @@ def calc_variation(start_pos,cigar,seq_list,scaffold,read_id):
             #genome_slice = fasta_dict[scaffold][genome_start:genome_end+1]
 
             seq_slice = seq_list[seq_start:seq_end]
-            genome_slice = fasta_dict[scaffold][genome_start:genome_end]
+            genome_slice = fasta_dict[scaffold][genome_start:genome_end].seq.upper()
 
             seq_diff = seq_end - seq_start
             gen_diff = genome_end - genome_start
@@ -1206,7 +1204,7 @@ def calc_error_rate_lowmem(start_pos,cigar,seq_list,scaffold,read_id):
             genome_end = genome_pos + match_length
 
             seq_slice = seq_list[seq_start:seq_end]
-            genome_slice = fasta_dict[scaffold][genome_start:genome_end]
+            genome_slice = fasta_dict[scaffold][genome_start:genome_end].seq.upper()
 
             seq_diff = seq_end - seq_start
             gen_diff = genome_end - genome_start
@@ -1387,7 +1385,7 @@ def calc_error_rate_lowmem(start_pos,cigar,seq_list,scaffold,read_id):
                     genome_end = this_genome_pos + match_length
 
                     seq_slice = seq_list[seq_start:seq_end]
-                    genome_slice = fasta_dict[scaffold][genome_start:genome_end]
+                    genome_slice = fasta_dict[scaffold][genome_start:genome_end].seq.upper()
 
                     #######################################################
                     #print(str(match_length)+next_cig_flag)
@@ -4849,7 +4847,7 @@ def detect_polya(trans_obj,a_window): # looks for a stretch of poly A in the gen
     if strand == "+":
         trans_end = trans_obj.end_pos
         
-        downstream_seq = fasta_dict[scaffold][trans_end:trans_end+a_window]
+        downstream_seq = fasta_dict[scaffold][trans_end:trans_end+a_window].seq.upper()
         dseq_length = len(downstream_seq)
         if dseq_length == 0:
             if log_flag == "log_on":
@@ -4870,7 +4868,7 @@ def detect_polya(trans_obj,a_window): # looks for a stretch of poly A in the gen
                 print(trans_obj.trans_id)
                 print(scaffold + " " + str(trans_obj.start_pos) + " " +  str(trans_obj.end_pos)+ " " + strand)
             a_window_start = 0
-        downstream_seq = fasta_dict[scaffold][a_window_start:trans_end]
+        downstream_seq = fasta_dict[scaffold][a_window_start:trans_end].seq.upper()
         rev_comp_seq = reverse_complement(downstream_seq)
         downstream_seq = rev_comp_seq
         
@@ -4920,8 +4918,8 @@ def detect_rt_switch(trans_obj): # looks for complementary structure in intronic
         bind_flag = 0
         start_index = i + 1
         end_index = i
-        end_seq = fasta_dict[scaffold][end_index:end_index+rt_window]
-        start_seq = fasta_dict[scaffold][start_index-rt_window:start_index]
+        end_seq = fasta_dict[scaffold][end_index:end_index+rt_window].seq.upper()
+        start_seq = fasta_dict[scaffold][start_index-rt_window:start_index].seq.upper()
         
         rev_comp_end_seq = reverse_complement(end_seq)
         
@@ -5003,25 +5001,27 @@ def compare_multimaps(trans_obj_a,trans_obj_b): ### Added this 2019/03/04
 
 ####################################################################################### Loop through fasta file
 
-fasta_dict = {} # fasta_dict[scaffold name] = array for seq
-fasta_header_dict = {} # fasta_header_dict[scaffold name] = fasta header
-fasta_scaffold_list = [] # list of fatsa seq names to be compared to SAM file header
+# fasta_dict = {} # fasta_dict[scaffold name] = array for seq
+# fasta_header_dict = {} # fasta_header_dict[scaffold name] = fasta header
+# fasta_scaffold_list = [] # list of fatsa seq names to be compared to SAM file header
 
 prev_time = track_time(start_time,prev_time)
 #Create fasta lookup dict
 print("going through fasta")
-for seq_record in SeqIO.parse(fasta_file_name, "fasta"):
-    seq_name = str(seq_record.id)
-    seq_desc = str(seq_record.description)
+#for seq_record in SeqIO.parse(fasta_file_name, "fasta"):
+#    seq_name = str(seq_record.id)
+#    seq_desc = str(seq_record.description)
     
-    seq_string = str(seq_record.seq)
-    seq_string = seq_string.upper()
-    seq_length = len(seq_string)
+#    seq_string = str(seq_record.seq)
+#    seq_string = seq_string.upper()
+#    seq_length = len(seq_string)
     
-    fasta_dict[seq_name] = list(seq_string)
+#    fasta_dict[seq_name] = list(seq_string)
     
-    fasta_header_dict[seq_name] = seq_desc
-    fasta_scaffold_list.append(seq_name)
+    #fasta_header_dict[seq_name] = seq_desc
+    #fasta_scaffold_list.append(seq_name)
+
+fasta_dict = Fasta(fasta_file_name)
 
 
 sam_flag_dict = {} #sam_flag_dict[flag number] = meaning
@@ -6224,7 +6224,7 @@ if run_mode_flag == "original":
             ########################################################################################
 
 
-            ref_allele = fasta_dict[scaffold][var_pos]
+            ref_allele = fasta_dict[scaffold][var_pos].seq.upper()
 
             var_pos_accept_flag = 0 # Use this to signal if a variation ahs passed threshold for this position
             for var_type in var_type_list:
